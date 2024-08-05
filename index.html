@@ -43,7 +43,7 @@
         function generateBookmarklet() {
             let title = document.getElementById("title-input").value;
             let code = document.getElementById("code-textarea").value.trim();
-            let output = "javascript:" + encodeURIComponent("(function(){" + code + "})();");
+            let output = "javascript:(() => {" + encodeURIComponent(code) + "})();";
             
             let link = document.getElementById("bookmarklet");
             link.text = title;
