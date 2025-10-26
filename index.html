@@ -25,10 +25,13 @@
             height: 300px;
         }
 
+        #output-textarea {
+            height: 100px;
+        }
+
         a {
             text-decoration: none;
             color: white;
-            transition-duration: 0.4s;
             font-size: 20px;
             padding: 5px 20px;
             background: #04a5e5;
@@ -36,24 +39,58 @@
         }
 
         a:hover {
-            background-color: #1e66f5;
+            text-decoration: underline;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-evenly;
+            margin-top: 5px;
         }
     </style>
     <script>
         function generateBookmarklet() {
-            let title = document.getElementById("title-input").value;
+            let title = document.getElementById("title-input").value.trim();
+            let site = document.getElementById("url-input").value.trim();
             let code = document.getElementById("code-textarea").value.trim();
+
+            if (site) {
+                code = `
+let urlCheck = document.location.href;
+if (urlCheck.includes('${site}')) {
+    ${code.split("\n").map(line => "    " + line).join("\n")}
+}`;
+            }
+
             let output = "javascript:(() => {" + encodeURIComponent(code) + "})();";
-            
+
             let link = document.getElementById("bookmarklet");
-            link.text = title;
+            link.text = title || "bookmarklet";
             link.href = output;
 
-            let codeOutput = document.getElementById("output-textarea");
-            codeOutput.value = output;
+            document.getElementById("output-textarea").value = output;
+            document.getElementById("htmlOuput-textarea").value =
+                `<a href="${output}">${title || "bookmarklet"}</a>`;
+        }
 
-            let htmlOuput = document.getElementById("htmlOuput-textarea");
-            htmlOuput.value = `<a href="${output}">${title}</a>`;
+        function decodeBookmarklet() {
+            let encoded = document.getElementById("code-textarea").value.trim();
+
+            if (!encoded) {
+                alert("Please paste your encoded bookmarklet in the code box first.");
+                return;
+            }
+
+            // Try to extract encoded portion from bookmarklet
+            let match = encoded.match(/javascript:\(\(\)=>\{(.*)\}\)\(\);?/);
+            let partToDecode = match ? match[1] : encoded;
+
+            try {
+                let decoded = decodeURIComponent(partToDecode);
+                document.getElementById("output-textarea").value = decoded;
+            } catch (err) {
+                alert("Decoding failed: " + err.message);
+            }
         }
     </script>
 </head>
@@ -61,26 +98,22 @@
 <body>
     <h2>Bookmarklet Maker</h2>
 
-    Title: <input id="title-input" value="bookmarklet"></input>
-    </br>
-    
-    Code: </br>
+    Title: <input id="title-input" value="bookmarklet"><br>
+    URL (optional): <input id="url-input""><br>
 
+    Code (or paste encoded bookmarklet here):<br>
     <textarea id="code-textarea" autofocus>alert('hello world');</textarea>
-    <div align="center" style="display: flex; justify-content: space-evenly;">
+
+    <div class="button-group">
         <button onclick="generateBookmarklet();">Generate Bookmarklet</button>
+        <button onclick="decodeBookmarklet();">Decode Bookmarklet</button>
         <a id="bookmarklet" href="">bookmarklet</a>
     </div>
-    
-    Output:
-    </br>
-    <textarea id="output-textarea" class="output-textarea"></textarea>
-    </br>
 
+    Output:<br>
+    <textarea id="output-textarea" class="output-textarea"></textarea><br>
 
-    Html code:
-    </br>
+    HTML code:<br>
     <textarea id="htmlOuput-textarea" class="output-textarea"></textarea>
-    
 </body>
 </html>
